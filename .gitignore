@@ -21,4 +21,5 @@
 ###< symfony/web-server-bundle ###
 .idea/
 phpdocker/
-docker-compose.yml
+
+.docker/mysql/*

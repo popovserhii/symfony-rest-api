@@ -4,13 +4,14 @@ namespace App\Domain\Model\Article;
 
 /**
  * Interface ArticleRepositoryInterface
+ *
  * @package App\Domain\Model\Article
  */
 interface ArticleRepositoryInterface
 {
-
     /**
      * @param int $articleId
+     *
      * @return Article
      */
     public function findById(int $articleId): ?Article;
@@ -29,5 +30,4 @@ interface ArticleRepositoryInterface
      * @param Article $article
      */
     public function delete(Article $article): void;
-
 }

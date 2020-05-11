@@ -6,12 +6,12 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Class Article
+ *
  * @ORM\Entity
  * @package App\Domain\Model\Article
  */
 class Article
 {
-
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -58,6 +58,7 @@ class Article
 
     /**
      * @param string $title
+     *
      * @throws \InvalidArgumentException
      */
     public function setTitle(string $title): void
@@ -65,7 +66,6 @@ class Article
         if (\strlen($title) < 5) {
             throw new \InvalidArgumentException('Title needs to have 5 or more characters.');
         }
-
         $this->title = $title;
     }
 
@@ -84,5 +84,4 @@ class Article
     {
         $this->content = $content;
     }
-
 }

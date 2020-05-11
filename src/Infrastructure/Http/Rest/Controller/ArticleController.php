@@ -2,22 +2,22 @@
 
 namespace App\Infrastructure\Http\Rest\Controller;
 
-
-use App\Application\DTO\ArticleDTO;
-use App\Application\Service\ArticleService;
-use App\Domain\Model\Article\Article;
+use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
-use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\View\View;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Domain\Model\Article\Article;
+use App\Application\Service\ArticleService;
+use App\Infrastructure\Repository\ArticleRepository;
 
 /**
  * Class ArticleController
+ *
  * @package App\Infrastructure\Http\Rest\Controller
  */
-final class ArticleController extends FOSRestController
+final class ArticleController extends AbstractFOSRestController
 {
     /**
      * @var ArticleService
@@ -25,33 +25,47 @@ final class ArticleController extends FOSRestController
     private $articleService;
 
     /**
-     * ArticleController constructor.
-     * @param ArticleService $articleService
+     * @var ArticleRepository
      */
-    public function __construct(ArticleService $articleService)
+    private $articleRepository;
+
+    /**
+     * ArticleController constructor.
+     *
+     * @param ArticleService $articleService
+     * @param ArticleRepository $articleRepository
+     */
+    public function __construct(ArticleService $articleService, ArticleRepository $articleRepository)
     {
         $this->articleService = $articleService;
+        $this->articleRepository = $articleRepository;
     }
 
     /**
      * Creates an Article resource
      * @Rest\Post("/articles")
-     * @ParamConverter("articleDTO", converter="fos_rest.request_body")
-     * @param ArticleDTO $articleDTO
+     *
+     * @param Request $request
+     *
      * @return View
      */
-    public function postArticle(ArticleDTO $articleDTO): View
+    public function postArticle(Request $request): View
     {
-        $article = $this->articleService->addArticle($articleDTO);
+        $article = new Article();
+        $article->setTitle($request->get('title'));
+        $article->setContent($request->get('content'));
+        $this->articleRepository->save($article);
 
-        // In case our POST was a success we need to return a 201 HTTP CREATED response with the created object
+        // In case our POST was a success we need to return a 201 HTTP CREATED response
         return View::create($article, Response::HTTP_CREATED);
     }
 
     /**
      * Retrieves an Article resource
      * @Rest\Get("/articles/{articleId}")
+     *
      * @param int $articleId
+     *
      * @return View
      * @throws \Doctrine\ORM\EntityNotFoundException
      */
@@ -66,6 +80,7 @@ final class ArticleController extends FOSRestController
     /**
      * Retrieves a collection of Article resource
      * @Rest\Get("/articles")
+     *
      * @return View
      */
     public function getArticles(): View
@@ -78,16 +93,20 @@ final class ArticleController extends FOSRestController
 
     /**
      * Replaces Article resource
-     * @Rest\Put("/articles/{id}")
-     * @ParamConverter("articleDTO", converter="fos_rest.request_body")
+     * @Rest\Put("/articles/{articleId}")
+     *
      * @param int $articleId
-     * @param ArticleDTO $articleDTO
+     *
      * @return View
-     * @throws \Doctrine\ORM\EntityNotFoundException
      */
-    public function putArticle(int $articleId, ArticleDTO $articleDTO): View
+    public function putArticle(int $articleId, Request $request): View
     {
-        $article = $this->articleService->updateArticle($articleId, $articleDTO);
+        $article = $this->articleRepository->findById($articleId);
+        if ($article) {
+            $article->setTitle($request->get('title'));
+            $article->setContent($request->get('content'));
+            $this->articleRepository->save($article);
+        }
 
         // In case our PUT was a success we need to return a 200 HTTP OK response with the object as a result of PUT
         return View::create($article, Response::HTTP_OK);
@@ -96,7 +115,9 @@ final class ArticleController extends FOSRestController
     /**
      * Removes the Article resource
      * @Rest\Delete("/articles/{articleId}")
+     *
      * @param int $articleId
+     *
      * @return View
      * @throws \Doctrine\ORM\EntityNotFoundException
      */
